@@ -28,7 +28,7 @@ Install the package locally:
 ## Usage
 
 ```python
-from frmatcher.fastq_file_name_checker import FastqFileNameChecker
+from frmatcher import FastqFileNameChecker
 
 filenames = [
     "sample_1_L001.fastq.gz",
