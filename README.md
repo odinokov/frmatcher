@@ -55,8 +55,8 @@ categorized_files = checker.categorize_fastq_files()
 
 print(categorized_files)
 
-# {'R1': ['sample_1_L001.fastq.gz', 'sample_1_L002.fastq.gz'], 
-# 'R2': ['sample_2_L001.fastq.gz', 'sample_2_L002.fastq.gz'], 
+# {'R1': ['sample_1_L001.fastq.gz', 'sample_1_L002.fastq.gz'],
+# 'R2': ['sample_2_L001.fastq.gz', 'sample_2_L002.fastq.gz'],
 # 'ignored': []}
 
 ```
