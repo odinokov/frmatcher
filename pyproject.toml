@@ -7,7 +7,7 @@ name = "frmatcher"
 version = "0.1.0"
 description = "Pair FASTQ R1/R2 files and output as TSV"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 license = { text = "MIT" }
 dependencies = ["loguru"]
 

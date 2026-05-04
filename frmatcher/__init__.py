@@ -6,7 +6,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Iterator, NamedTuple
+from typing import Iterator, NamedTuple, Optional, Union
 
 from loguru import logger
 
@@ -56,7 +56,7 @@ def iter_fastq_files(
                 yield path
 
 
-def parse_fastq_name(filename: str) -> dict[str, str] | None:
+def parse_fastq_name(filename: str) -> Optional[dict[str, str]]:
     # greedy prefix => last _R1/_1 wins (e.g., sample_1_R2.fastq.gz parses as R2)
     m = _READ_PATTERN.match(filename)
     return m.groupdict() if m else None
@@ -111,8 +111,8 @@ def _pair_rows(
 
 
 def write_fastq_pairs(
-    in_dir: str | Path,
-    out_tsv: str | Path,
+    in_dir: Union[str, Path],
+    out_tsv: Union[str, Path],
     recursive: bool = False,
     strict: bool = False,
 ) -> None:
