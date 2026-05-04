@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "frmatcher"
+version = "0.1.0"
+description = "Pair FASTQ R1/R2 files and output as TSV"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["loguru"]
+
+[project.scripts]
+frmatcher = "frmatcher:main"
