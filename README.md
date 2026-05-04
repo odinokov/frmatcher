@@ -65,7 +65,7 @@ for path in iter_fastq_files(Path("/data"), extensions=custom_ext):
 
 ## Requirements
 
-- Python >= 3.10
+- Python >= 3.9
 - [loguru](https://github.com/Delgan/loguru)
 
 ## License
