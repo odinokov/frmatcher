@@ -67,3 +67,7 @@ for path in iter_fastq_files(Path("/data"), extensions=custom_ext):
 
 - Python >= 3.10
 - [loguru](https://github.com/Delgan/loguru)
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
