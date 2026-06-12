@@ -49,12 +49,11 @@ def iter_fastq_files(
     recursive: bool = False,
     extensions: frozenset[str] = FASTQ_EXTENSIONS,
 ) -> Iterator[Path]:
+    suffixes = tuple(extensions)
     iterator = directory.rglob("*") if recursive else directory.iterdir()
     for path in iterator:
-        if path.is_file():
-            name = path.name.lower()
-            if any(name.endswith(ext) for ext in extensions):
-                yield path
+        if path.is_file() and path.name.lower().endswith(suffixes):
+            yield path
 
 
 def parse_fastq_name(filename: str) -> Optional[dict[str, str]]:
@@ -134,25 +133,23 @@ def write_fastq_pairs(
         with tmp.open("w", encoding="utf-8") as fh:
             for a, b in pairs:
                 fh.write(f"{a}\t{b}\n")
+
+        if unpaired:
+            shown = unpaired[:20]
+            extra = f" +{len(unpaired) - 20} more" if len(unpaired) > 20 else ""
+            logger.warning(f"Unpaired groups (key, nR1, nR2): {shown}{extra}")
+            if strict:
+                raise FastqPairingError(f"{len(unpaired)} unpaired group(s); first: {unpaired[0]}")
+
+        if stats.n_unmatched:
+            logger.warning(f"Unmatched FASTQ file(s): {stats.n_unmatched}")
+            if strict:
+                raise FastqPairingError(f"{stats.n_unmatched} unmatched FASTQ file(s)")
+
+        tmp.replace(out_path)
     except Exception:
         tmp.unlink(missing_ok=True)
         raise
-
-    if unpaired:
-        shown = unpaired[:20]
-        extra = f" +{len(unpaired) - 20} more" if len(unpaired) > 20 else ""
-        logger.warning(f"Unpaired groups (key, nR1, nR2): {shown}{extra}")
-        if strict:
-            tmp.unlink(missing_ok=True)
-            raise FastqPairingError(f"{len(unpaired)} unpaired group(s); first: {unpaired[0]}")
-
-    if stats.n_unmatched:
-        logger.warning(f"Unmatched FASTQ file(s): {stats.n_unmatched}")
-        if strict:
-            tmp.unlink(missing_ok=True)
-            raise FastqPairingError(f"{stats.n_unmatched} unmatched FASTQ file(s)")
-
-    tmp.replace(out_path)
     logger.info(
         f"Done: fastq={stats.n_fastq}, unmatched={stats.n_unmatched}, "
         f"index={stats.n_index}, pairs={len(pairs)}, unpaired={len(unpaired)}"
