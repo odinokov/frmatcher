@@ -25,11 +25,12 @@ _READ_PATTERN = re.compile(
 )
 
 _INDEX_READ_PATTERN = re.compile(
-    r"^.+[._-]I[12](?:[._-].*)?\.(?:f(?:ast)?q)(?:\.(?:gz|bz2))?$",
+    r"^.+[._-]I[12](?P<tail>(?:[._-].*)?)\.(?:f(?:ast)?q)(?:\.(?:gz|bz2))?$",
     re.IGNORECASE,
 )
 
 _INDEX_PATTERN = re.compile(r"(?:^|[._-])I[12](?:[._-]|$)", re.IGNORECASE)
+_BIOLOGICAL_READ_PATTERN = re.compile(r"(?:^|[._-])R?[12](?:[._-]|$)", re.IGNORECASE)
 
 
 class FastqPairingError(ValueError):
@@ -67,7 +68,10 @@ def is_index_file(stemish: str) -> bool:
 
 
 def is_index_read_name(filename: str) -> bool:
-    return bool(_INDEX_READ_PATTERN.match(filename))
+    m = _INDEX_READ_PATTERN.match(filename)
+    if not m:
+        return False
+    return not bool(_BIOLOGICAL_READ_PATTERN.search(m.group("tail") or ""))
 
 
 def group_fastq_pairs(directory: Path, recursive: bool = False) -> PairingStats:
@@ -85,11 +89,8 @@ def group_fastq_pairs(directory: Path, recursive: bool = False) -> PairingStats:
             n_unmatched += 1
             logger.debug(f"Unmatched: {path.name}")
             continue
-        stemish = f"{parsed['prefix']}{parsed['tail']}"
-        if is_index_file(stemish):
-            n_index += 1
-            continue
-        key = f"{parsed['prefix']}{parsed['sep']}{{read}}{parsed['tail']}"
+        basename_key = f"{parsed['prefix']}{parsed['sep']}{{read}}{parsed['tail']}"
+        key = str(path.parent / basename_key) if recursive else basename_key
         groups[key][parsed["read"]].append(str(path))
 
     return PairingStats(n_fastq=n_fastq, n_index=n_index, n_unmatched=n_unmatched, groups=dict(groups))
@@ -145,9 +146,11 @@ def write_fastq_pairs(
             tmp.unlink(missing_ok=True)
             raise FastqPairingError(f"{len(unpaired)} unpaired group(s); first: {unpaired[0]}")
 
-    if stats.n_unmatched and strict:
-        tmp.unlink(missing_ok=True)
-        raise FastqPairingError(f"{stats.n_unmatched} unmatched FASTQ file(s)")
+    if stats.n_unmatched:
+        logger.warning(f"Unmatched FASTQ file(s): {stats.n_unmatched}")
+        if strict:
+            tmp.unlink(missing_ok=True)
+            raise FastqPairingError(f"{stats.n_unmatched} unmatched FASTQ file(s)")
 
     tmp.replace(out_path)
     logger.info(
@@ -160,8 +163,13 @@ def main() -> int:
     p = argparse.ArgumentParser(prog="frmatcher", description="Pair FASTQ R1/R2 files and write TSV (R1<TAB>R2).")
     p.add_argument("-i", "--in-dir", required=True, help="Directory containing FASTQ files")
     p.add_argument("-o", "--out-tsv", required=True, help="Output TSV file path")
-    p.add_argument("-r", "--recursive", action="store_true", help="Search subdirectories")
-    p.add_argument("--strict", action="store_true", help="Fail if any unpaired group exists")
+    p.add_argument(
+        "-r",
+        "--recursive",
+        action="store_true",
+        help="Search subdirectories; pairs are matched within the same directory",
+    )
+    p.add_argument("--strict", action="store_true", help="Fail if any unpaired or unmatched FASTQ exists")
     p.add_argument(
         "--log-level",
         default="INFO",
@@ -174,7 +182,11 @@ def main() -> int:
     logger.remove()
     logger.add(sys.stderr, level=args.log_level)
 
-    write_fastq_pairs(args.in_dir, args.out_tsv, recursive=args.recursive, strict=args.strict)
+    try:
+        write_fastq_pairs(args.in_dir, args.out_tsv, recursive=args.recursive, strict=args.strict)
+    except (FastqPairingError, NotADirectoryError) as exc:
+        logger.error(str(exc))
+        return 1
     return 0
 
 

@@ -2,7 +2,7 @@
 
 Scans a directory for FASTQ files and outputs a two-column TSV of paired R1/R2 paths.
 
-Handles common naming conventions (`_R1_`, `_R2_`, `_1.`, `_2.`, `.R1.`, `.R2.`) and compound extensions (`.fastq.gz`, `.fq.bz2`, etc.). Index reads (`I1`/`I2`) are skipped.
+Handles common naming conventions (`_R1_`, `_R2_`, `_1.`, `_2.`, `.R1.`, `.R2.`) and compound extensions (`.fastq.gz`, `.fq.bz2`, etc.). Index reads whose read token is `I1` or `I2` are skipped.
 
 ## Installation
 
@@ -20,7 +20,7 @@ frmatcher -i /path/to/fastq_dir -o pairs.tsv
 options:
   -i, --in-dir    Directory containing FASTQ files (required)
   -o, --out-tsv   Output TSV file path (required)
-  -r, --recursive Search subdirectories
+  -r, --recursive Search subdirectories; pairs are matched within the same directory
   --strict        Exit non-zero if any non-index FASTQ cannot be paired or matched
   --log-level     TRACE|DEBUG|INFO|WARNING|ERROR|CRITICAL (default: INFO)
   --version       Show version and exit
@@ -36,6 +36,12 @@ Each line is a paired R1/R2:
 ```
 
 Output paths preserve the input directory style: absolute `--in-dir` values produce absolute paths, and relative `--in-dir` values produce relative paths.
+
+When `--recursive` is used, files are paired only with matching R1/R2 files in the same directory. This prevents identically named samples in different run folders from being paired together.
+
+Index-read detection only applies to filenames whose read token is `I1` or `I2`, such as `sample_I1_001.fastq.gz`. Sample identifiers may contain `I1` or `I2` and still pair normally when the biological read token is `R1`/`R2`, such as `patient_I1_R1.fastq.gz`.
+
+By default, incomplete groups are skipped and the command still writes all complete pairs. Use `--strict` when an unmatched or unpaired FASTQ should fail the run.
 
 ## Python API
 
