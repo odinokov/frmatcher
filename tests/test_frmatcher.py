@@ -198,6 +198,22 @@ def test_write_fastq_pairs_basic(tmp_path):
     assert r2.endswith("s_R2_001.fastq.gz")
 
 
+def test_write_fastq_pairs_non_strict_skips_unpaired(tmp_path):
+    # Default (non-strict): write complete pairs, skip incomplete groups, exit cleanly.
+    in_dir = tmp_path / "in"
+    in_dir.mkdir()
+    _touch(in_dir, "a_R1.fastq.gz", "a_R2.fastq.gz", "b_R1.fastq.gz")  # b has no R2
+    out = tmp_path / "pairs.tsv"
+
+    write_fastq_pairs(in_dir, out)  # no strict -> no raise
+
+    rows = out.read_text().splitlines()
+    assert len(rows) == 1
+    r1, r2 = rows[0].split("\t")
+    assert r1.endswith("a_R1.fastq.gz")
+    assert r2.endswith("a_R2.fastq.gz")
+
+
 def test_write_fastq_pairs_not_a_directory(tmp_path):
     with pytest.raises(NotADirectoryError):
         write_fastq_pairs(tmp_path / "does_not_exist", tmp_path / "out.tsv")

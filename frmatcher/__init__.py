@@ -62,8 +62,15 @@ def parse_fastq_name(filename: str) -> Optional[dict[str, str]]:
     return m.groupdict() if m else None
 
 
-def is_index_file(stemish: str) -> bool:
-    return bool(_INDEX_PATTERN.search(stemish))
+def is_index_file(name: str) -> bool:
+    """Return True if ``name`` contains an I1/I2 token (stem or filename).
+
+    A lightweight token check exposed for callers classifying arbitrary
+    strings. Unlike :func:`is_index_read_name`, it requires no FASTQ
+    extension and does not exclude sample names that merely contain an
+    ``I1``/``I2`` token (e.g. ``patient_I1_R1``).
+    """
+    return bool(_INDEX_PATTERN.search(name))
 
 
 def is_index_read_name(filename: str) -> bool:
