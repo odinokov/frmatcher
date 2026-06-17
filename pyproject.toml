@@ -13,3 +13,10 @@ dependencies = ["loguru"]
 
 [project.scripts]
 frmatcher = "frmatcher:main"
+
+[tool.setuptools.package-data]
+frmatcher = ["py.typed"]
+
+[tool.mypy]
+strict = true
+files = ["frmatcher"]
