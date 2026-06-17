@@ -12,7 +12,7 @@ from loguru import logger
 
 logger.disable(__name__)
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 FASTQ_EXTENSIONS: frozenset[str] = frozenset(
     {".fq", ".fastq", ".fq.gz", ".fastq.gz", ".fq.bz2", ".fastq.bz2"}
