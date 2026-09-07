@@ -1,5 +1,10 @@
 # frmatcher
 
+[![tag](https://img.shields.io/github/v/tag/odinokov/frmatcher)](https://github.com/odinokov/frmatcher/tags)
+![python](https://img.shields.io/badge/python-%E2%89%A53.9-blue)
+[![license](https://img.shields.io/github/license/odinokov/frmatcher)](LICENSE)
+![mypy](https://img.shields.io/badge/mypy-strict-blue)
+
 Scans a directory for FASTQ files and outputs a two-column TSV of paired R1/R2 paths.
 
 Handles common naming conventions (`_R1_`, `_R2_`, `_1.`, `_2.`, `.R1.`, `.R2.`) and compound extensions (`.fastq.gz`, `.fq.bz2`, etc.). Index reads whose read token is `I1` or `I2` are skipped.
@@ -7,7 +12,7 @@ Handles common naming conventions (`_R1_`, `_R2_`, `_1.`, `_2.`, `.R1.`, `.R2.`)
 ## Installation
 
 ```bash
-pip install git+https://github.com/odinokov/frmatcher.git
+pip install git+https://github.com/odinokov/frmatcher.git@v0.1.1
 ```
 
 ## CLI usage
@@ -68,6 +73,8 @@ custom_ext = FASTQ_EXTENSIONS | frozenset({".fq.zst"})
 for path in iter_fastq_files(Path("/data"), extensions=custom_ext):
     print(path)
 ```
+
+Also exported: `parse_fastq_name(filename)` returns the matched name components (`prefix`, `sep`, `read`, `tail`) or `None`; `is_index_read_name(filename)` reports whether a FASTQ filename is an I1/I2 index read; `is_index_file(name)` is a looser token check on arbitrary strings (no extension required); `PairingStats` is a NamedTuple with `n_fastq`, `n_index`, `n_unmatched`, and `groups`; `FastqPairingError` is raised by `write_fastq_pairs` in strict mode.
 
 ## Requirements
 
